@@ -2,33 +2,44 @@
 import { useState } from "react";
 
 export default function MonthlyCalendar({
-  month,
-  setMonth,
+  month: displayedMonth,
+  setMonth: setDisplayedMonth,
 }: {
   month: number;
   setMonth: React.Dispatch<React.SetStateAction<number>>;
+  selectWeek: React.Dispatch<
+    React.SetStateAction<{
+      year: number;
+      month: number;
+      week: number;
+    } | null>
+  >;
 }) {
-  const [active, setActive] = useState<number | null>(null);
+  const [active, setActive] = useState<{
+    month: number;
+    day: number;
+  } | null>(null);
 
   // val day of the week the month starts on
-  const dayOfWeek = new Date(2024, month, 1).getDay();
+  const dayOfWeek = new Date(2024, displayedMonth, 1).getDay();
 
   const offset = -dayOfWeek;
 
-  const daysInMonth = new Date(2024, month + 1, 0).getDate();
+  const daysInMonth = new Date(2024, displayedMonth + 1, 0).getDate();
   // val days in previous month
-  const daysInPreviousMonth = new Date(2024, month, 0).getDate();
+  const daysInPreviousMonth = new Date(2024, displayedMonth, 0).getDate();
 
-  const getDay = (i: number, j: number) => {
+  const getDay = (month: number, i: number, j: number) => {
     // val days in current month
 
     const number = offset + i * 7 + j;
     return {
-      number:
+      day:
         number >= 0
           ? (number % daysInMonth) + 1
           : number + daysInPreviousMonth + 1,
       current: number >= 0 && number < daysInMonth,
+      month: month + (number < 0 ? -1 : number >= daysInMonth ? 1 : 0),
     };
   };
 
@@ -40,14 +51,21 @@ export default function MonthlyCalendar({
             <th colSpan={7}>
               <div className="flex justify-between">
                 <h2 className="text-center">
-                  {new Date(2024, month, 1).toLocaleDateString("en-US", {
-                    month: "long",
-                    year: "numeric",
-                  })}
+                  {new Date(2024, displayedMonth, 1).toLocaleDateString(
+                    "en-US",
+                    {
+                      month: "long",
+                      year: "numeric",
+                    }
+                  )}
                 </h2>
                 <div className="flex gap-2">
-                  <button onClick={() => setMonth(month - 1)}>{"<"}</button>
-                  <button onClick={() => setMonth(month + 1)}>{">"}</button>
+                  <button onClick={() => setDisplayedMonth(displayedMonth - 1)}>
+                    {"<"}
+                  </button>
+                  <button onClick={() => setDisplayedMonth(displayedMonth + 1)}>
+                    {">"}
+                  </button>
                 </div>
               </div>
             </th>
@@ -66,8 +84,9 @@ export default function MonthlyCalendar({
           {Array.from({ length: 6 }, (_, i) => (
             <tr key={i}>
               {Array.from({ length: 7 }, (_, j) => {
-                const { number, current } = getDay(i, j);
-                const isActive = month * 31 * 31 + i * 31 + j === active;
+                const { day, current, month } = getDay(displayedMonth, i, j);
+                const isActive =
+                  active && active.month === month && active.day === day;
                 return (
                   <td key={`${i}-${j}`}>
                     <button
@@ -82,9 +101,9 @@ export default function MonthlyCalendar({
                         isActive ? "bg-amber-300 rounded-full" : "",
                         "px-2 py-1 w-full aspect-square",
                       ].join(" ")}
-                      onClick={() => setActive(month * 31 * 31 + i * 31 + j)}
+                      onClick={() => setActive({ month, day })}
                     >
-                      {number}
+                      {day}
                     </button>
                   </td>
                 );
