@@ -4,6 +4,7 @@ import { useState } from "react";
 export default function MonthlyCalendar({
   month: displayedMonth,
   setMonth: setDisplayedMonth,
+  selectWeek,
 }: {
   month: number;
   setMonth: React.Dispatch<React.SetStateAction<number>>;
@@ -11,7 +12,7 @@ export default function MonthlyCalendar({
     React.SetStateAction<{
       year: number;
       month: number;
-      week: number;
+      day: number;
     } | null>
   >;
 }) {
@@ -85,6 +86,7 @@ export default function MonthlyCalendar({
             <tr key={i}>
               {Array.from({ length: 7 }, (_, j) => {
                 const { day, current, month } = getDay(displayedMonth, i, j);
+                const startOfWeek = getDay(displayedMonth, i, 0);
                 const isActive =
                   active && active.month === month && active.day === day;
                 return (
@@ -102,6 +104,13 @@ export default function MonthlyCalendar({
                         "px-2 py-1 w-full aspect-square",
                       ].join(" ")}
                       onClick={() => setActive({ month, day })}
+                      onDoubleClick={() =>
+                        selectWeek({
+                          year: 2024 + Math.floor(startOfWeek.month / 12),
+                          month: startOfWeek.month % 12,
+                          day: startOfWeek.day,
+                        })
+                      }
                     >
                       {day}
                     </button>
